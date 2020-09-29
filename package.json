@@ -1,0 +1,24 @@
+{
+  "name": "crm-cliente",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@apollo/client": "^3.2.1",
+    "formik": "^2.1.5",
+    "graphql": "^15.3.0",
+    "next": "9.5.3",
+    "node-fetch": "^2.6.1",
+    "react": "16.13.1",
+    "react-dom": "16.13.1",
+    "yup": "^0.29.3"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.0.0",
+    "postcss-cli": "^7.1.2"
+  }
+}
