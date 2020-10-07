@@ -1,20 +1,32 @@
 import React from 'react';
 import {useRouter} from 'next/router'
 import Layout from '../../components/Layout'
-import {gql, useQuery} from '@apollo/client'
+import {gql, useQuery, useMutation} from '@apollo/client'
 import {Formik} from 'formik'
 import * as Yup from 'yup'
+import Swal from 'sweetalert2'
 
 const OBTENER_CLIENTE = gql`
-    query obtenerCliente($id : ID!){
-        obtenerCliente(id:$id){
-            nombre
-            email
-            apeliido
-            telefono        
-            empresa
-        }
+    query obtenerCliente($id: ID!){
+  obtenerCliente(id : $id){
+    id
+    nombre
+    empresa
+    apellido
+    email
+    telefono
+  
+  }
+}
+`
+
+const ACTUALIZAR_CLIENTE =  gql`
+mutation actualizarCliente($id : ID!, $input : ClienteInput){
+    actualizarCliente(id : $id, input : $input){
+      nombre
+      email
     }
+  }
 `
 
 
@@ -22,7 +34,7 @@ const EditarCliente = () => {
 
     const router = useRouter()
     const {query : {id}} = router
-    console.log(id)
+
 
     //consultar para obtener el cliente
     const {data, loading, error} = useQuery(OBTENER_CLIENTE, {
@@ -30,6 +42,9 @@ const EditarCliente = () => {
             id
         }
     })
+
+    //axtualizar el cliente
+    const [actualizarCliente] = useMutation(ACTUALIZAR_CLIENTE)
    
 
     //schema de validacion
@@ -40,10 +55,40 @@ const EditarCliente = () => {
         email : Yup.string().required('el correo es oligatorio').email('Correo no valido')
     })
 
-if(loading) return "Cargando..."
+    if(loading) return "Cargando..."
+    
+    const {obtenerCliente} = data
 
-console.log(data)
-console.log(error)
+    //modificar el cliente en la db
+    const actualizarInfoCliente = async valores => {
+        const {nombre, apellido, email, empresa, telefono} = valores
+        try {
+            const {data } = await actualizarCliente({
+                variables:{
+                    id,
+                    input:{
+                        nombre, 
+                        apellido, 
+                        email, 
+                        empresa, 
+                        telefono
+                    }
+                }
+                
+            })
+
+             //mostrar una alerta
+             Swal.fire(
+                'Actualizado!',
+               "El cliente se actualizo correctamente",
+                'success'
+              )
+            //todo redireccionar
+            router.push('/')
+        } catch (error) {
+            console.log(error)
+        }
+    }
 
     return ( 
         <Layout>
@@ -54,16 +99,16 @@ console.log(error)
                     <Formik
                         validationSchema = {schemaValidation}
                         enableReinitialize
-                        // initialValues={
-                        //     obtenerCliente
-                        // }
+                        initialValues={
+                            obtenerCliente
+                        }
+                        onSubmit= {(valores) => {
+                            actualizarInfoCliente(valores)
+                        
+                        }}
                     >
                         {props => {
-                            
-
                             return(
-
-                         
                     <form
                         className="bg-white shadow-md px-8 pt-6 pb-8 mb-4"
                         onSubmit={props.handleSubmit}
@@ -79,7 +124,7 @@ console.log(error)
                                 type="text"
                                 onChange={props.handleChange}
                                 onBlur={props.handleBlur}
-                                // value={props.values.nombre}
+                                value={props.values.nombre}
                             />
                         </div>
                         {props.errors.nombre  && props.touched.nombre ? (
@@ -99,7 +144,7 @@ console.log(error)
                                 type="text"
                                 onChange={props.handleChange}
                                 onBlur={props.handleBlur}
-                                // value={props.values.apellido}
+                                value={props.values.apellido}
                             />
                         </div>
                         {props.errors.apellido  && props.touched.apellido ? (
@@ -119,7 +164,7 @@ console.log(error)
                                 type="text"
                                 onChange={props.handleChange}
                                 onBlur={props.handleBlur}
-                                // value={formik.values.empresa}
+                                value={props.values.empresa}
                             />
                         </div>
                         {props.errors.empresa  && props.touched.empresa ? (
@@ -139,7 +184,7 @@ console.log(error)
                                 type="email"
                                 onChange={props.handleChange}
                                 onBlur={props.handleBlur}
-                                // value={formik.values.email}
+                                value={props.values.email}
                             />
                         </div>
                         {props.errors.email  && props.touched.email ? (
@@ -159,7 +204,7 @@ console.log(error)
                                 type="tel"
                                 onChange={props.handleChange}
                                 onBlur={props.handleBlur}
-                                // value={formik.values.telefono}
+                                value={props.values.telefono}
                             />
                         </div>
                         {props.errors.telefono  && props.touched.telefono ? (
@@ -172,7 +217,7 @@ console.log(error)
                         <input 
                             type="submit"
                             className="bg-gray-800 w-full mt-5 p-2 text-white uppercase font-bold hover:bg-gray-900"
-                            value="Registrar Cliente"
+                            value="Editar Cliente"
                         />
                     </form>
                        )
